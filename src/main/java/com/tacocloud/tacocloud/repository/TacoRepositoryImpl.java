@@ -1,12 +1,10 @@
 package com.tacocloud.tacocloud.repository;
 
-import com.tacocloud.tacocloud.domain.Ingredient;
 import com.tacocloud.tacocloud.domain.Taco;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
@@ -36,17 +34,21 @@ public class TacoRepositoryImpl implements TacoRepository {
 
     private long saveTacoInfo(Taco taco) {
         taco.setCreatedAt(new Date());
+        PreparedStatementCreatorFactory psf = new PreparedStatementCreatorFactory(
+                "insert into Taco (name, createdAt) values (?, ?)",
+                Types.VARCHAR, Types.TIMESTAMP
+        );
+        psf.setReturnGeneratedKeys(true);
         PreparedStatementCreator psc =
-                new PreparedStatementCreatorFactory(
-                        "insert into Taco (name, createdAt) values (?, ?)",
-                        Types.VARCHAR, Types.TIMESTAMP
-                ).newPreparedStatementCreator(
+               psf.newPreparedStatementCreator(
                         Arrays.asList(
                                 taco.getName(),
                                 new Timestamp(taco.getCreatedAt().getTime())));
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(psc, keyHolder);
-        return keyHolder.getKey().longValue();
+        long a =  keyHolder.getKey().longValue();
+        return a;
     }
 
     private void saveIngredientToTaco(
@@ -54,6 +56,6 @@ public class TacoRepositoryImpl implements TacoRepository {
         jdbc.update(
                 "insert into Taco_Ingredients (taco, ingredient) " +
                         "values (?, ?)",
-                tacoId, Ingredient.Type.valueOf(ingredient));
+                tacoId, ingredient);
     }
 }
